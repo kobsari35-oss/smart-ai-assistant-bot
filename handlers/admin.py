@@ -1,30 +1,59 @@
+import os
 import asyncio
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 from utils.db import (
     set_premium, remove_user_premium, get_all_users, 
-    set_global_limit, DATA_CACHE
+    set_global_limit
 )
 
-# 👇 ADMIN ID របស់អ្នក 👇
-ADMIN_ID = 5574913183
+# 👇 ADMIN ID: យកពី Environment (Render) បើអត់មានយកលេខបន្ទាប់
+ADMIN_ID = int(os.getenv("ADMIN_ID", "5574913183"))
 
 def is_admin(uid):
     return uid == ADMIN_ID
 
+# 📢 Broadcast (ផ្ញើសារទៅកាន់សមាជិកទាំងអស់)
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
+    
     if not context.args:
-        await update.message.reply_text("⚠️ សូមសរសេរអត្ថបទដែលចង់ផ្សាយ។")
+        await update.message.reply_text("⚠️ សូមសរសេរអត្ថបទដែលចង់ផ្សាយ។\nExample: `/broadcast Hello All`")
         return
-    msg = " ".join(context.args)
-    # ... (Broadcast logic)
+    
+    msg_text = " ".join(context.args)
+    users = get_all_users()
+    
+    status_msg = await update.message.reply_text(f"🚀 កំពុងផ្ញើទៅកាន់ {len(users)} នាក់...")
+    
+    sent = 0
+    failed = 0
+    
+    for uid in users:
+        try:
+            await context.bot.send_message(
+                chat_id=uid, 
+                text=f"📢 **សេចក្តីជូនដំណឹង:**\n\n{msg_text}", 
+                parse_mode="Markdown"
+            )
+            sent += 1
+            await asyncio.sleep(0.05) # ការពារ Telegram Block (Flood limit)
+        except Exception:
+            failed += 1
+            
+    await context.bot.edit_message_text(
+        chat_id=update.effective_chat.id,
+        message_id=status_msg.message_id,
+        text=f"✅ **ការផ្សាយចប់សព្វគ្រប់!**\n\n📤 ជោគជ័យ: {sent}\n❌ បរាជ័យ: {failed}"
+    )
 
+# 👥 មើលចំនួន User សរុប
 async def user_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
     users = get_all_users()
-    await update.message.reply_text(f"👥 Total Users: {len(users)}\nIDs: {users[:20]}...")
+    await update.message.reply_text(f"👥 Total Users: {len(users)}\nIDs (Top 20): {users[:20]}...")
 
+# ⚙️ កំណត់ Limit ទូទៅ (សម្រាប់ Free User)
 async def set_limit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
     if not context.args:
@@ -33,7 +62,7 @@ async def set_limit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         limit = int(context.args[0])
         set_global_limit(limit)
-        await update.message.reply_text(f"✅ Global Free Limit បានប្តូរទៅជា: {limit}")
+        await update.message.reply_text(f"✅ Global Free Limit បានប្តូរទៅជា: {limit} សារ/ថ្ងៃ")
     except ValueError:
         await update.message.reply_text("⚠️ លេខមិនត្រឹមត្រូវ។")
 
@@ -57,7 +86,7 @@ async def add_premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Default = Unlimited Forever
         duration = 0 
         limit = -1 
-        plan_text = "💎 Unlimited (មិនកំណត់)"
+        plan_text = "💎 Unlimited (VIP)"
         duration_text = "មួយជីវិត (Forever)"
 
         if len(context.args) > 1:
