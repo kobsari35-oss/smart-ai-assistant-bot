@@ -57,7 +57,7 @@ async def upgrade_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🏦 *ABA Bank*\n"
         "• Account: `096 666 7292`\n"
         "• Name: *Hem SopheaK*\n\n"
-        "👉 ទាក់ទង Admin: @Samross_Ph_Care\n"
+        "👉 ទាក់ទង Admin: @Samross\\_Ph_\\Care\n"
         f"🆔 ID របស់អ្នក៖ `{user_id}`"
     )
     await update.message.reply_text(text, parse_mode="Markdown", disable_web_page_preview=False)
