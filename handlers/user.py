@@ -57,7 +57,7 @@ async def upgrade_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🏦 *ABA Bank*\n"
         "• Account: `096 666 7292`\n"
         "• Name: *Hem SopheaK*\n\n"
-        "👉 ទាក់ទង Admin: @Samross\\_Ph_\\Care\n"
+        "👉 ទាក់ទង Admin: @Samross\\_Ph\\_Care\n"
         f"🆔 ID របស់អ្នក៖ `{user_id}`"
     )
     await update.message.reply_text(text, parse_mode="Markdown", disable_web_page_preview=False)
@@ -68,7 +68,7 @@ async def reset_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['mode'] = 'general'
     await update.message.reply_text("🧹 Reset រួចរាល់។", reply_markup=main_menu(update.effective_user.id))
 
-# 👤 Profile Logic (Fix 0/0 Bug & Plan Names)
+# 👤 Profile Logic
 async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     data = get_user_status(user.id)
@@ -83,7 +83,6 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_limit == -1:
         limit_display = "♾️ មិនកំណត់"
     else:
-        # បើ Premium តែ Limit=0 (ករណី Error ពីមុន) -> គួរតែ Fix Data តែបង្ហាញឲ្យត្រូវសិន
         effective_limit = user_limit if user_limit != 0 else global_limit
         limit_display = f"{effective_limit} សារ"
 
@@ -112,7 +111,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 4. បិទ Tip បើគាត់ Upgrade រួចហើយ
     tip_msg = "\n💡 *Tip:* Upgrade ដើម្បីទទួលបាន Limit ច្រើនជាងនេះ!"
     if is_premium and user_limit == -1:
-        tip_msg = "" # បើ Unlimited ហើយ មិនបាច់បង្ហាញ Tip ទេ
+        tip_msg = ""
 
     msg = (
         f"👤 *គណនីរបស់អ្នក (Profile)*\n"
@@ -132,7 +131,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_mode = context.user_data.get('mode', 'general')
 
-    # --- Menu Buttons Check ---
+    # --- Menu Buttons Check (ត្រូវដូច helpers.py ១០០%) ---
     if text == "🤖 General AI":
         context.user_data['mode'] = 'general'
         await update.message.reply_text("🤖 General AI: សួរសំណួរទូទៅបាន...", reply_markup=main_menu(user.id))
@@ -156,12 +155,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "📸 OCR Translate":
         await update.message.reply_text("📸 សូមផ្ញើរូបភាព (Photo) ដើម្បីឱ្យខ្ញុំអានអក្សរ...", reply_markup=main_menu(user.id))
         return
+        
+    # 👇👇 Fix: ឈ្មោះដូច helpers.py 👇👇
     elif text == "💸 Donate (ឧបត្ថម្ភ)":
         await upgrade_info(update, context)
         return
     elif text == "⚙️ ជំនួយ (Help)":
         await help_command(update, context)
         return
+    # 👆👆 ----------------------- 👆👆
+
     elif text == "🧹 Reset Chat":
         await reset_chat(update, context)
         return
@@ -223,6 +226,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode="Markdown"
             )
         except Exception:
+            # Fallback (Markdown error)
             await context.bot.edit_message_text(
                 chat_id=update.effective_chat.id, 
                 message_id=msg.message_id, 
