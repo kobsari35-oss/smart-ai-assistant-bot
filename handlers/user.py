@@ -40,10 +40,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=main_menu(user.id))
 
-# ⚙️ Help
+# ⚙️ Help (កែថ្មីឱ្យមានអត្ថន័យជាងមុន)
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("⚙️ ជំនួយ: សូមប្រើ Menu ខាងក្រោម", reply_markup=main_menu(update.effective_user.id))
-
+    help_text = (
+        "⚙️ **ជំនួយ និងរបៀបប្រើប្រាស់ (Help Guide)**\n"
+        "━━━━━━━━━━━━━━━━━━\n\n"
+        "🤖 **General AI:** សម្រាប់សួរសំណួរទូទៅ ចំណេះដឹង ឬឱ្យសរសេរអត្ថបទផ្សេងៗ។\n\n"
+        "🇨🇳🗣 **Chinese Conversation:** សម្រាប់រៀនសន្ទនាភាសាចិន (Bot នឹងបង្រៀនជា Pinyin & Meaning)។\n\n"
+        "📚 **Chinese Word Meaning:** វាយពាក្យចិន -> Bot នឹងវិភាគពាក្យនោះយ៉ាងលម្អិត។\n\n"
+        "📘 **Grammar:** ផ្ញើប្រយោគ (អង់គ្លេស/ចិន) -> Bot នឹងកែវេយ្យាករណ៍ឱ្យត្រូវ។\n\n"
+        "📸 **OCR Translate:** ផ្ញើរូបភាពដែលមានអក្សរ -> Bot នឹងដកស្រង់អក្សរ និងបកប្រែ។\n\n"
+        "🧹 **Reset Chat:** ចុចដើម្បីឱ្យ Bot ភ្លេចរឿងចាស់ៗ ហើយចាប់ផ្តើមថ្មី។"
+    )
+    
+    await update.message.reply_text(
+        help_text, 
+        parse_mode="Markdown", 
+        reply_markup=main_menu(update.effective_user.id)
+    )
 # 💸 Upgrade Info
 async def upgrade_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
